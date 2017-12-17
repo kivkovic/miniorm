@@ -35,7 +35,7 @@ class Query {
 				} else if ($arguments[0] instanceof Query and ! $arguments[0] instanceof Table) {
 					$query = $arguments[0]->compile(TRUE);
 					$return_type = $this->_return_type;
-						
+
 				} else {
 					$table = new $arguments[0];
 					list($return_type, $query) = call_user_func_array([$this, $new->_relations[$arguments[0]]['type']], [$table]);
@@ -98,18 +98,18 @@ class Query {
 			case 'where':
 			case 'having':
 				$parametrized_arguments = [strtoupper(str_replace('_', ' ', $method))]; // WHERE or HAVING
-				
+
 				for ($i = 0; $i < count($arguments); $i++) {
 					$argument = $arguments[$i];
-					
+
 					if (is_string($argument) && stripos($argument, Table::delimiter) === 0) {
 						$argument = preg_replace('/^'.preg_quote(Table::delimiter).'/', '', $argument);
-					
+
 					} else if ($i >= 2) {
 						$argument = ":param" . count($new->_parameters);
 						$new->_parameters[$argument] = $arguments[$i];
 					}
-					
+
 					$parametrized_arguments []= $argument;
 				}
 
@@ -125,7 +125,7 @@ class Query {
 					return $argument;
 				}, $arguments)));
 				break;
-			
+
 			case 'page':
 				if (!isset($arguments[1])) {
 					$arguments []= 0;
@@ -204,7 +204,7 @@ class Query {
 				$name = explode(' ', $term[0]);
 				$term[0] = $name[0];
 			}
-			
+
 			return implode(' ', $term);
 		}, $this->_query);
 
@@ -252,7 +252,7 @@ class Table extends Query {
 
 	public $_table;
 	public $_schema;
-	
+
 	public $_relations = [];
 	public $_values = [];
 	public $_write = [];
@@ -262,21 +262,21 @@ class Table extends Query {
 	public function __construct($schema = NULL, $table = NULL) {
 
 		$class = get_class($this);
-		
+
 		$this->_table = $table ?: constant("{$class}::table");
-		
-		$this->_schema = $schema ?: defined("{$class}::schema") 
+
+		$this->_schema = $schema ?: defined("{$class}::schema")
 			? constant("{$class}::schema") : 'public';
 
-		$this->_relations = defined("{$class}::relations") 
+		$this->_relations = defined("{$class}::relations")
 			? constant("{$class}::relations") : [];
-		
+
 	    $parent = get_parent_class($class);
 		$reflection = new \ReflectionClass($class);
 		$static_properties = $reflection->getStaticProperties();
 
-		foreach ($static_properties as $property => $value) { 
-			
+		foreach ($static_properties as $property => $value) {
+
 	        if (!isset($class::$$property) && isset($parent::$$property)) { // inherited table attributes must always be *declared* in child classes
 	        	$class::$$property = $parent::$$property;
 	        }
@@ -284,7 +284,7 @@ class Table extends Query {
 		    $class::$$property = Table::delimiter."{$this->path()}.\"{$property}\"";
 		    $this->_values[$property] = NULL;
 		}
-		
+
 		$this->_return_type = $class;
 
 		$this->_select []= ["{$this->path()}.*"];
@@ -295,7 +295,7 @@ class Table extends Query {
     	if (!array_key_exists($name, $this->_values)) {
     		trigger_error('Undefined property: '.get_class($this).'::$'.$name, E_USER_NOTICE);
     		return;
-    	}		
+    	}
 		$this->_write[$name] = $value;
     }
 
