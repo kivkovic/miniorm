@@ -230,6 +230,12 @@ class Query {
 
 		return $this;
 	}
+
+	public function get() {
+		$new = clone $this;
+		$new = $new->compile();
+		return [$new->_compiled, $new->_parameters];
+	}
 }
 
 class Literal {
