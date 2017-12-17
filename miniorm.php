@@ -242,7 +242,9 @@ class Literal {
 	public $contents;
 	public function __construct() {
 		$this->contents = array_reduce(func_get_args(), function ($carry, $item) {
-			$item = is_subclass_of($item, 'Models\\Table') ? $item::table : $item;
+			$item = is_subclass_of($item, 'Models\\Table')
+				? (defined("{$item}::schema") ? constant("{$item}::schema") : 'public') . '.' . $item::table
+				: $item;
 			return $carry . $item;
 		}, '');
 	}
