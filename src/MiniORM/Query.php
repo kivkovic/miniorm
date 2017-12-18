@@ -95,7 +95,8 @@ class Query {
 		}
 
 		list($query, $parameters) = $this->compile();
-		// TODO implement
+		$db_class = 'MiniORM\\Database\\'.(isset($database['vendor']) ? strtoupper($database['vendor']) : 'PSQL');
+		$db_driver = new $db_class($database);
 
 		return [];
 	}
@@ -203,9 +204,5 @@ class Query {
 		if (isset($this->_offset)) $query []= 'OFFSET ' . $this->_offset;
 
 		return [implode(' ', $query), $parameters];
-	}
-
-	public static function database($database) {
-		self::$___database = $database;
 	}
 }
