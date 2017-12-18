@@ -72,6 +72,32 @@ class Table {
 		return $results;
 	}
 
+	public function save() {
+		$result = NULL;
+		if (empty($this->___write)) {
+			return $this;
+		}
+
+		foreach (self::$___columns as $key => $column) {
+			if(!empty($column['primary_key']) && !empty($this->___values[$key])) {
+				$result = Query::update($this->path(), $this->___write, [$key => $this->___values[$key]], self::get_database());
+				break;
+			}
+		}
+
+		if ($result === NULL) {
+			$result = Query::insert($this->path(), $this->___write, self::get_database());
+		}
+
+		$class = get_called_class();
+		$object = new $class;
+		foreach ($result as $key => $value) {
+			$object->___values[$key] = $value;
+		}
+
+		return $object;
+	}
+
 	public function __set($name, $value) {
 		if (!array_key_exists($name, $this->___values)) {
 			throw new UndefinedPropertyException('Undefined property: '.get_class($this).'::$'.$name);
