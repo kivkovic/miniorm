@@ -78,6 +78,35 @@ class Query {
 		return $new;
 	}
 
+	public static function insert($table, $values, $database) {
+		$db_driver = self::get_db_driver($database);
+
+		$columns = implode(',', array_map(function ($col) {
+			return '"'.$col.'"';
+		}, array_keys($values)));
+
+		$counter = 0;
+		$placeholders = implode(',', array_map(function ($value) use (&$counter) {
+			$counter++;
+			return '$'.$counter;
+		}, array_values($values)));
+
+		$query = "INSERT INTO {$table} ($columns) VALUES ($placeholders)";
+		return $db_driver->get_param_query($query, array_values($values), TRUE);
+	}
+
+	public static function update($table, $values, $id, $database) {
+		$db_driver = self::get_db_driver($database);
+		$query = "UPDATE {$table} SET ";
+
+		for ($i = 0; $i < count($values); $i++) {
+			$query .= '"' . array_keys($values)[$i] . '" = $' . ($i+1);
+		}
+
+		$query .= " WHERE ".array_keys($id)[0]." = ".array_values($id)[0];
+		return $db_driver->get_param_query($query, array_values($values), TRUE);
+	}
+
 	public static function literal() {
 		$value = Table::delimiter;
 		foreach (func_get_args() as $argument) {
@@ -87,13 +116,8 @@ class Query {
 	}
 
 	public function get(array $database = NULL) {
-		if (empty($database)) {
-			throw new DatabaseUndefinedException('Database object not defined');
-		}
-
 		list($query, $parameters) = $this->compile();
-		$db_class = 'MiniORM\\Database\\'.(isset($database['vendor']) ? strtoupper($database['vendor']) : 'PSQL');
-		$db_driver = new $db_class($database);
+		$db_driver = $this->get_db_driver($database);
 		return $db_driver->get_param_query($query, $parameters);
 	}
 
@@ -200,6 +224,15 @@ class Query {
 		if (isset($this->_offset)) $query []= 'OFFSET ' . $this->_offset;
 
 		return [implode(' ', $query), $parameters];
+	}
+
+	protected static function get_db_driver($database) {
+		if (empty($database)) {
+			throw new DatabaseUndefinedException('Database object not defined');
+		}
+
+		$db_class = 'MiniORM\\Database\\'.(isset($database['vendor']) ? strtoupper($database['vendor']) : 'PSQL');
+		return new $db_class($database);
 	}
 }
 
