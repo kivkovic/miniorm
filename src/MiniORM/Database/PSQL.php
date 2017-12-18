@@ -11,8 +11,12 @@ class PSQL {
 		$this->database = $database;
 	}
 
-	public function get_param_query($query, $parameters) {
+	public function get_param_query($query, $parameters, $force_return = FALSE) {
 		$this->connect();
+
+		if ($force_return) {
+			$query .= ' RETURNING *';
+		}
 
 		$result = pg_query_params($this->connection, $query, $parameters);
 		$rows = [];
