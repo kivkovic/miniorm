@@ -62,13 +62,13 @@ class Table {
 
 		foreach (self::$___columns as $key => $column) {
 			if(!empty($column['primary_key']) && !empty($this->___values[$key])) {
-				$result = Query::update($this->path(), $this->___write, [$key => $this->___values[$key]], self::get_database());
+				$result = Query::update(self::path(), $this->___write, [$key => $this->___values[$key]], self::get_database());
 				break;
 			}
 		}
 
 		if ($result === NULL) {
-			$result = Query::insert($this->path(), $this->___write, self::get_database());
+			$result = Query::insert(self::path(), $this->___write, self::get_database());
 		}
 
 		$class = get_called_class();
@@ -98,8 +98,8 @@ class Table {
 		return $this->___values[$name];
 	}
 
-	public function path() {
-		return "\"{$this->___schema}\".\"{$this->___table}\"";
+	public static function path() {
+		return '"' . static::$___schema . '"."' . static::$___table . '"';
 	}
 
 	public static function initialize_columns() {

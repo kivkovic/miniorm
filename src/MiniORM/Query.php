@@ -46,7 +46,8 @@ class Query {
 			$new->_select []= $value;
 
 		} else if ($method === 'from') {
-			$value['arguments'][0] = Table::delimiter . (new $value['arguments'][0])->path();
+			$class = $value['arguments'][0];
+			$value['arguments'][0] = Table::delimiter . $class::path();
 			$new->_from []= $value;
 
 		} else if (in_array($method, ['join','left_join','right_join','left_outer_join','right_outer_join','inner_join'])) {
@@ -175,7 +176,7 @@ class Query {
 				$table =& $expression['arguments'][0];
 
 				if (stripos($table, 'Models\\') === 0) {
-					$table = Table::delimiter . (new $table)->path();
+					$table = Table::delimiter . $table::path();
 				}
 
 				$expression = $flatten($expression);
