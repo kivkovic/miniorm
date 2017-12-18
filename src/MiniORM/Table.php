@@ -4,6 +4,7 @@ namespace MiniORM;
 
 class Table {
 
+	public $_database;
 	public $_table;
 	public $_schema;
 
@@ -38,6 +39,10 @@ class Table {
 			$class::$$property = Table::delimiter."{$this->path()}.\"{$property}\"";
 			$this->_values[$property] = NULL;
 		}
+	}
+
+	public static function database($database) {
+		self::$_database = $database;
 	}
 
 	public function __set($name, $value) {
