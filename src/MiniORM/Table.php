@@ -6,44 +6,26 @@ class Table {
 
 	public static $___database;
 	public static $___columns = [];
+	public static $___initialized = FALSE;
+	public static $___table;
+	public static $___schema;
+	public static $___relations = [];
 
-	public $___table;
-	public $___schema;
-	public $___relations = [];
 	public $___values = [];
 	public $___write = [];
 
 	const delimiter = "\0\0\0*\0\0\0";
 
 	public function __construct($schema = NULL, $table = NULL) {
+		self::initialize_columns();
 
 		$class = get_class($this);
-
-		$this->___table = $table ?: constant("{$class}::table");
-
-		$this->___schema = $schema ?: defined("{$class}::schema")
-			? constant("{$class}::schema") : 'public';
-
-		$this->___relations = defined("{$class}::relations")
-			? constant("{$class}::relations") : [];
-
 		$parent = get_parent_class($class);
 		$reflection = new \ReflectionClass($class);
 		$static_properties = $reflection->getStaticProperties();
 
 		foreach ($static_properties as $property => $value) {
 			if (stripos($property, '___') === 0) continue;
-
-			if (!isset($class::$$property) && isset($parent::$$property)) { // inherited table attributes must always be *declared* in child classes
-				$class::$$property = $parent::$$property;
-			}
-
-			$class::$$property = Table::delimiter."{$this->path()}.\"{$property}\"";
-
-			if (!isset($class::$___columns[$property])) {
-				$class::$___columns[$property] = $value;
-			}
-
 			$this->___values[$property] = NULL;
 		}
 	}
@@ -118,6 +100,28 @@ class Table {
 
 	public function path() {
 		return "\"{$this->___schema}\".\"{$this->___table}\"";
+	}
+
+	public static function initialize_columns() {
+		$models = array_filter(get_declared_classes(), function ($class) {
+			return defined("{$class}::table") && is_subclass_of($class, self::class) && !$class::$___initialized;
+		});
+
+		foreach ($models as $model) {
+			$model::$___schema = defined("{$model}::schema") ? constant("{$model}::schema") : 'public';
+			$model::$___table = constant("{$model}::table");
+			$model::$___relations = defined("{$model}::relations") ? constant("{$model}::relations") : [];
+			$model::$___initialized = TRUE;
+
+			$reflection = new \ReflectionClass($model);
+			$static_properties = $reflection->getStaticProperties();
+
+			foreach ($static_properties as $property => $value) {
+				if (stripos($property, '___') === 0) continue;
+				$value['name'] = '"' . $model::$___schema . '"."' . $model::$___table . '"."' . $property . '"';
+				$model::$$property = new Column($value);
+			}
+		}
 	}
 }
 

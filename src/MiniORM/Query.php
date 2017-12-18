@@ -16,6 +16,7 @@ class Query {
 	public $_offset   = NULL;
 
 	public static function __callStatic($method, $arguments) {
+		Table::initialize_columns();
 		$new = new self;
 
 		if (in_array($method, ['not', 'exists', 'cast', 'call', 'as'])) {
@@ -79,6 +80,8 @@ class Query {
 	}
 
 	public static function insert($table, $values, $database) {
+		Table::initialize_columns();
+
 		$db_driver = self::get_db_driver($database);
 
 		$columns = implode(',', array_map(function ($col) {
@@ -96,6 +99,8 @@ class Query {
 	}
 
 	public static function update($table, $values, $id, $database) {
+		Table::initialize_columns();
+
 		$db_driver = self::get_db_driver($database);
 		$query = "UPDATE {$table} SET ";
 
@@ -108,6 +113,8 @@ class Query {
 	}
 
 	public static function literal() {
+		Table::initialize_columns();
+
 		$value = Table::delimiter;
 		foreach (func_get_args() as $argument) {
 			$value .= ' ' . preg_replace('/^'.preg_quote(Table::delimiter).'/', '', $argument);
