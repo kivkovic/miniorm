@@ -141,6 +141,9 @@ class Query {
 					$parameters = array_merge($parameters, $subparameters);
 					$expression['arguments'][$key] = $subquery;
 
+				} else if ($value instanceof Column) {
+					$expression['arguments'][$key] = $value->name;
+
 				} else if (strpos($value, Table::delimiter) === 0) {
 					$expression['arguments'][$key] = substr($expression['arguments'][$key], strlen(Table::delimiter));
 
