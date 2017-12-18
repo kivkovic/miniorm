@@ -128,7 +128,7 @@ class Query {
 
 				foreach ($this_select as $expression) {
 					$expression = $flatten($expression, ['*']);
-					$select = array_merge($select, $expression['method'] === 'count' ? ['COUNT'] : [], ['('], $expression['arguments'], [')'], [',']);
+					$select = array_merge($select, $expression['method'] === 'count' ? ['COUNT'] : [], $expression['arguments'], [',']);
 				}
 				array_pop($select);
 				$query = array_merge($query, $select);
