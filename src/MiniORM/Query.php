@@ -216,6 +216,9 @@ class Query {
 				} else if ($expression['method'] === 'cast') {
 					$query = array_merge($query, [strtoupper($expression['method'])], ['('], [$expression['arguments'][0], 'AS', $expression['arguments'][1]], [')']);
 
+				} else if ($expression['method'] === 'as') {
+					$query = array_merge($query, [$expression['arguments'][0], 'AS', $expression['arguments'][1]]);
+
 				} else {
 					$query = array_merge($query, [strtoupper($expression['method'])], ['('], $expression['arguments'], [')']);
 				}
