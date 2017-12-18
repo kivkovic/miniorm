@@ -132,10 +132,6 @@ class Query {
 			return $query;
 		};
 
-		$group_order = function ($query, $this_group_by, $verb) use (&$flatten) {
-			return $query;
-		};
-
 		$simple = function ($query, $expressions) use (&$flatten) {
 			foreach ($expressions as $expression) {
 				$expression = $flatten($expression);
@@ -151,9 +147,9 @@ class Query {
 		$query = $select_from($query, $this->_from, 'FROM');
 		$query = $join($query, $this->_join);
 		$query = $where_having($query, $this->_where, 'WHERE');
-		$query = $group_order($query, $this->_group_by, 'GROUP BY');
+		$query = $select_from($query, $this->_group_by, 'GROUP BY');
 		$query = $where_having($query, $this->_having, 'HAVING');
-		$query = $group_order($query, $this->_group_by, 'ORDER BY');
+		$query = $select_from($query, $this->_order_by, 'ORDER BY');
 		if (isset($this->_limit))  $query []= 'LIMIT '  . $this->_limit;
 		if (isset($this->_offset)) $query []= 'OFFSET ' . $this->_offset;
 
