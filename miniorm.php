@@ -17,10 +17,16 @@ class Query {
 
 	public static function __callStatic($method, $arguments) {
 		$new = new self;
-		if ($method === 'from') {
+
+		if (in_array($method, ['not', 'exists', 'cast', 'call'])) {
+			$new->_global []= ['method' => $method, 'arguments' => $arguments];
+			return $new;
+
+		} else if ($method === 'from') {
 			$new->_from []= ['method' => 'from', 'arguments' => [Table::delimiter . (new $arguments[0])->path()]];
 			return $new;
 		}
+
 		return $new->__call($method, $arguments);
 	}
 
@@ -112,7 +118,6 @@ class Query {
 
 				if (stripos($table, 'Models\\') === 0) {
 					$table = Table::delimiter . (new $table)->path();
-					// arguments if implicit...
 				}
 
 				$expression = $flatten($expression);
@@ -154,22 +159,6 @@ class Query {
 		if (isset($this->_offset)) $query []= 'OFFSET ' . $this->_offset;
 
 		return [implode(' ', $query), $parameters];
-	}
-}
-
-class Expression extends Query {
-	public $_global = [];
-
-	public static function __callStatic($method, $arguments) {
-		$new = new Expression();
-
-		if (in_array($method, ['not', 'exists', 'cast', 'call'])) {
-			$new->_global []= ['method' => $method, 'arguments' => $arguments];
-			return $new;
-
-		} else {
-			return $new->__call($method, $arguments);
-		}
 	}
 }
 
