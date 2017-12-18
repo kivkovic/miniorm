@@ -53,14 +53,14 @@ MiniORM\Table::set_database([
 	'password' => 'postgres'
 ]);
 
-class X extends MiniORM\Table {
+class X extends MiniORM\Table { // a root class
 
 	public static $id = [
 		'type' => 'integer'
 	];
 }
 
-class A extends X {
+class A extends X { // table model A
 
 	const table = 'table_a';
 	const schema = 'custom';
@@ -80,7 +80,7 @@ class A extends X {
 	];
 }
 
-class B extends X {
+class B extends X { // table model B
 
 	const table = 'table_b';
 
@@ -94,15 +94,22 @@ class B extends X {
 		'type' => 'text'
 	];
 }
-$list = A::load(
+
+
+$list = A::load( // integrates with Query
 	MiniORM\Query::select('*')
 	->from(A::class)
 	->where(A::$columnA, '<', 500)
 );
 
 $a = $list[0];
+
+echo $a; // outputs: {"id":9,"columnA":100,"x_id":null}
+
 $a->columnA = 1;
 $a = $a->save(); // performs update, returns updated Table object
+
+echo $a; // outputs: {"id":9,"columnA":1,"x_id":null}
 
 $b = new A();
 $b->columnA = 55;
