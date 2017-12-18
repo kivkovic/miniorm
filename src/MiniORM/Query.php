@@ -94,8 +94,7 @@ class Query {
 		list($query, $parameters) = $this->compile();
 		$db_class = 'MiniORM\\Database\\'.(isset($database['vendor']) ? strtoupper($database['vendor']) : 'PSQL');
 		$db_driver = new $db_class($database);
-
-		return [];
+		return $db_driver->get_param_query($query, $parameters);
 	}
 
 	public function compile() {
