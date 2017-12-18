@@ -4,7 +4,9 @@ namespace Models;
 
 class Query {
 
+	public $_global   = [];
 	public $_select   = [];
+	public $_from     = [];
 	public $_join     = [];
 	public $_where    = [];
 	public $_group_by = [];
@@ -14,21 +16,12 @@ class Query {
 	public $_offset   = NULL;
 
 	public static function __callStatic($method, $arguments) {
-
+		$new = new self;
 		if ($method === 'from') {
-			$new = new $arguments[0];
-		} else {
-			$new = new self;
+			$new->_from []= ['method' => 'from', 'arguments' => [Table::delimiter . (new $arguments[0])->path()]];
+			return $new;
 		}
-
 		return $new->__call($method, $arguments);
-	}
-
-	public function path() {
-		if (!defined("{$this}::table")) {
-			trigger_error('Uncaught Error: Table not defined');
-		}
-		return (defined("{$this}::schema") ? constant("{$this}::schema") : 'public') . '.' . $this::table;
 	}
 
 	public function __call($method, $arguments) {
@@ -71,6 +64,101 @@ class Query {
 		}
 		return $value;
 	}
+
+	public function run($database) {
+		$this->compile();
+	}
+
+	public function compile() {
+		$query = [];
+		$parameters = [];
+
+		$flatten = function ($expression, $override = []) use (&$parameters) {
+			foreach ($expression['arguments'] as $key => $value) {
+
+				if ($value instanceof Query) {
+					list($subquery, $subparameters) = $value->compile();
+					$parameters = array_merge($parameters, $subparameters);
+					$expression['arguments'][$key] = $subquery;
+
+				} else if (strpos($value, Table::delimiter) === 0) {
+					$expression['arguments'][$key] = substr($expression['arguments'][$key], strlen(Table::delimiter));
+
+				} else if (!in_array($value, $override) && !($key >= 1 && preg_match('#^([a-z ]+|[:!+*\-/=<>~]+)$#i', $value))) {
+					$parameters []= $value;
+					$expression['arguments'][$key] = '$'.count($parameters);
+				}
+			}
+			return $expression;
+		};
+
+		$select_from = function ($query, $this_select, $verb) use (&$flatten) {
+			if (count($this_select)) {
+				$select = [$verb];
+
+				foreach ($this_select as $expression) {
+					$expression = $flatten($expression, ['*']);
+					$select = array_merge($select, $expression['method'] === 'count' ? ['COUNT'] : [], ['('], $expression['arguments'], [')'], [',']);
+				}
+				array_pop($select);
+				$query = array_merge($query, $select);
+			}
+			return $query;
+		};
+
+		$join = function($query, $this_join) use (&$flatten) {
+			foreach ($this_join as $expression) {
+				$table =& $expression['arguments'][0];
+
+				if (stripos($table, 'Models\\') === 0) {
+					$table = Table::delimiter . (new $table)->path();
+					// arguments if implicit...
+				}
+
+				$expression = $flatten($expression);
+				$on = array_slice($expression['arguments'], 1);
+
+				$query = array_merge($query, [strtoupper(str_replace('_', ' ', $expression['method']))], ['(', $table, ')'], ['ON', '('], $on, [')']);
+			}
+			return $query;
+		};
+
+		$where_having = function($query, $this_where, $verb) use (&$flatten) {
+			if (count($this_where)) $query []= $verb.' TRUE';
+			foreach ($this_where as $expression) {
+				$expression = $flatten($expression);
+				$query = array_merge($query, [stripos($expression['method'], '_or') !== FALSE ? 'OR' : 'AND'], ['('], $expression['arguments'], [')']);
+			}
+			return $query;
+		};
+
+		$group_order = function ($query, $this_group_by, $verb) use (&$flatten) {
+			return $query;
+		};
+
+		$simple = function ($query, $expressions) use (&$flatten) {
+			foreach ($expressions as $expression) {
+				$expression = $flatten($expression);
+				// TODO fix cast
+				// TODO fix call
+				$query = array_merge($query, [strtoupper($expression['method']), '('], $expression['arguments'], [')']);
+			}
+			return $query;
+		};
+
+		$query = $simple($query, $this->_global);
+		$query = $select_from($query, $this->_select, 'SELECT');
+		$query = $select_from($query, $this->_from, 'FROM');
+		$query = $join($query, $this->_join);
+		$query = $where_having($query, $this->_where, 'WHERE');
+		$query = $group_order($query, $this->_group_by, 'GROUP BY');
+		$query = $where_having($query, $this->_having, 'HAVING');
+		$query = $group_order($query, $this->_group_by, 'ORDER BY');
+		if (isset($this->_limit))  $query []= 'LIMIT '  . $this->_limit;
+		if (isset($this->_offset)) $query []= 'OFFSET ' . $this->_offset;
+
+		return [implode(' ', $query), $parameters];
+	}
 }
 
 class Expression extends Query {
@@ -86,13 +174,6 @@ class Expression extends Query {
 		} else {
 			return $new->__call($method, $arguments);
 		}
-	}
-
-	public function run($database) {
-		$query = [];
-		$parameters = [];
-
-		//TODO
 	}
 }
 
