@@ -48,7 +48,8 @@ class Query {
 			$new->_select []= $value;
 
 		} else if ($method === 'from') {
-			// TODO implement
+			$value['arguments'][0] = Table::delimiter . (new $value['arguments'][0])->path();
+			$new->_from []= $value;
 
 		} else if (in_array($method, ['join','left_join','right_join','left_outer_join','right_outer_join','inner_join'])) {
 			$value['arguments'] = $escape($value['arguments'], 2);
