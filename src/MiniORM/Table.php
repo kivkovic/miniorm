@@ -28,9 +28,22 @@ class Table {
 	public static function load($query) {
 		$results = [];
 		$class = get_called_class();
+		$external_types = [];
+
 		foreach ($query->get(self::get_database()) as $row) {
 			$object = new $class;
+			$columns = $class::columns();
+
 			foreach ($row as $key => $value) {
+				if ($value !== NULL) {
+					if (isset($columns[$key])) {
+						if (preg_match('/(int|serial)/i', $columns[$key]->type)) {
+							$value = (integer) $value;
+						} else if (preg_match('/(float|double|decimal)/i', $columns[$key]->type)) {
+							$value = (float) $value;
+						}
+					}
+				}
 				$object->___values[$key] = $value;
 			}
 			$results []= $object;
