@@ -32,6 +32,7 @@ class Table {
 		$static_properties = $reflection->getStaticProperties();
 
 		foreach ($static_properties as $property => $value) {
+			if (stripos($property, '___') === 0) continue;
 
 			if (!isset($class::$$property) && isset($parent::$$property)) { // inherited table attributes must always be *declared* in child classes
 				$class::$$property = $parent::$$property;
