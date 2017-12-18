@@ -51,6 +51,9 @@ class Table {
 		if (!array_key_exists($name, $this->___values)) {
 			throw new UndefinedPropertyException('Undefined property: '.get_class($this).'::$'.$name);
 		}
+		if (!empty($this->___columns[$name]['read_only'])) {
+			throw new ReadOnlyPropertyException('Read-only property: '.get_class($this).'::$'.$name);
+		}
 		$this->___write[$name] = $value;
 	}
 
@@ -67,5 +70,9 @@ class Table {
 }
 
 class UndefinedPropertyException extends \Exception {
+
+}
+
+class ReadOnlyPropertyException extends \Exception {
 
 }
