@@ -58,7 +58,7 @@ class Table {
 		}
 
 		$object = new $class;
-		foreach ($result as $key => $value) {
+		foreach ($result[0] as $key => $value) {
 			$object->___values[$key] = $value;
 		}
 
