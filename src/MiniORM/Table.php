@@ -106,6 +106,7 @@ class Table {
 			throw new ReadOnlyPropertyException('Read-only property: '.get_class($this).'::$'.$name);
 		}
 		$this->___write[$name] = $value;
+		$this->___values[$name] = $value;
 	}
 
 	public function __get($name) {
