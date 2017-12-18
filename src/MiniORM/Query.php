@@ -14,12 +14,9 @@ class Query {
 	public $_order_by = [];
 	public $_limit    = NULL;
 	public $_offset   = NULL;
-	public static $___database;
-	public $_database;
 
 	public static function __callStatic($method, $arguments) {
 		$new = new self;
-		$new->_database = self::$___database;
 
 		if (in_array($method, ['not', 'exists', 'cast', 'call', 'as'])) {
 			if ($method === 'cast' || $method === 'as') {
@@ -89,10 +86,9 @@ class Query {
 		return $value;
 	}
 
-	public function get($database = NULL) {
-		if (empty($database = $database ?: $this->_database)) {
-			// TODO throw
-			throw new \Exception('');
+	public function get(array $database = NULL) {
+		if (empty($database)) {
+			throw new DatabaseUndefinedException('Database object not defined');
 		}
 
 		list($query, $parameters) = $this->compile();
@@ -206,4 +202,8 @@ class Query {
 
 		return [implode(' ', $query), $parameters];
 	}
+}
+
+class DatabaseUndefinedException extends \Exception {
+
 }
