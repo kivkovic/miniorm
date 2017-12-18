@@ -18,7 +18,10 @@ class Query {
 	public static function __callStatic($method, $arguments) {
 		$new = new self;
 
-		if (in_array($method, ['not', 'exists', 'cast', 'call'])) {
+		if (in_array($method, ['not', 'exists', 'cast', 'call', 'as'])) {
+			if ($method === 'cast' || $method === 'as') {
+				$arguments[1] = Table::delimiter . $arguments[1];
+			}
 			$new->_global []= ['method' => $method, 'arguments' => $arguments];
 			return $new;
 
@@ -35,23 +38,35 @@ class Query {
 		$new = clone $this;
 		$value = ['method' => $method, 'arguments' => $arguments];
 
+		$escape = function ($value, $key) {
+			if (isset($value[$key])) {
+				$value[$key] = Table::delimiter . $value[$key];
+			}
+			return $value;
+		};
+
 		if (in_array($method, ['select', 'count'])) {
 			$new->_select []= $value;
 
 		} else if (in_array($method, ['join','left_join','right_join','left_outer_join','right_outer_join','inner_join'])) {
-			if ($method === 'join') $value['method'] = 'left_join';
+			$value['arguments'] = $escape($value['arguments'], 2);
 			$new->_join []= $value;
 
-		} else if (in_array($method, ['where', 'where_or', 'where_and'])) {
-			if ($method === 'where') $value['method'] = 'where_and';
-			$new->_where []= $value;
+		} else if (in_array($method, ['where', 'where_or', 'where_and', 'having', 'having_or', 'having_and'])) {
+
+			if (!preg_match('/_(or|and)$/i', $method)) {
+				$method .= '_and';
+			}
+			if (isset($value['arguments'][1]) && preg_match('#^[-+*/=!<>~.]+$#', $value['arguments'][1])) {
+				$value['arguments'] = $escape($value['arguments'], 1);
+			}
+			$new->{"_" . preg_replace('/_(or|and)$/i', '', $method)} []= $value;
 
 		} else if (in_array($method, ['group_by', 'order_by'])) {
+			if ($method === 'order_by') {
+				$value['arguments'] = $escape($value['arguments'], 1);
+			}
 			$new->{"_{$method}"} []= $value;
-
-		} else if (in_array($method, ['having', 'having_or', 'having_and'])) {
-			if ($method === 'having') $value['method'] = 'having_and';
-			$new->_having []= $value;
 
 		} else if (in_array($method, ['limit', 'offset'])) {
 			$new->{"_{$method}"} = $arguments[0];
@@ -80,6 +95,7 @@ class Query {
 		$parameters = [];
 
 		$flatten = function ($expression, $override = []) use (&$parameters) {
+
 			foreach ($expression['arguments'] as $key => $value) {
 
 				if ($value instanceof Query) {
@@ -90,7 +106,8 @@ class Query {
 				} else if (strpos($value, Table::delimiter) === 0) {
 					$expression['arguments'][$key] = substr($expression['arguments'][$key], strlen(Table::delimiter));
 
-				} else if (!in_array($value, $override) && !($key >= 1 && preg_match('#^([a-z ]+|[:!+*\-/=<>~]+)$#i', $value))) {
+				} else if ($key >= 1 && !in_array($value, $override)) {
+
 					$parameters []= $value;
 					$expression['arguments'][$key] = '$'.count($parameters);
 				}
@@ -138,11 +155,28 @@ class Query {
 		};
 
 		$simple = function ($query, $expressions) use (&$flatten) {
+			$add_commas = function($array) {
+				$result = [];
+				foreach ($array as $value) {
+					$result []= $value;
+					$result []= ',';
+				}
+				array_pop($result);
+				return $result;
+			};
+
 			foreach ($expressions as $expression) {
 				$expression = $flatten($expression);
-				// TODO fix cast
-				// TODO fix call
-				$query = array_merge($query, [strtoupper($expression['method']), '('], $expression['arguments'], [')']);
+
+				if ($expression['method'] === 'call') {
+					$query = array_merge($query, [strtoupper($expression['arguments'][0])], ['('], $add_commas(array_slice($expression['arguments'], 1)), [')']);
+
+				} else if ($expression['method'] === 'cast') {
+					$query = array_merge($query, [strtoupper($expression['method'])], ['('], [$expression['arguments'][0], 'AS', $expression['arguments'][1]], [')']);
+
+				} else {
+					$query = array_merge($query, [strtoupper($expression['method'])], ['('], $expression['arguments'], [')']);
+				}
 			}
 			return $query;
 		};
