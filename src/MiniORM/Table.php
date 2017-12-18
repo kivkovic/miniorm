@@ -4,13 +4,13 @@ namespace MiniORM;
 
 class Table {
 
-	public $_database;
-	public $_table;
-	public $_schema;
+	public static $___database;
+	public $___table;
+	public $___schema;
 
-	public $_relations = [];
-	public $_values = [];
-	public $_write = [];
+	public $___relations = [];
+	public $___values = [];
+	public $___write = [];
 
 	const delimiter = "\0\0\0*\0\0\0";
 
@@ -18,12 +18,12 @@ class Table {
 
 		$class = get_class($this);
 
-		$this->_table = $table ?: constant("{$class}::table");
+		$this->___table = $table ?: constant("{$class}::table");
 
-		$this->_schema = $schema ?: defined("{$class}::schema")
+		$this->___schema = $schema ?: defined("{$class}::schema")
 			? constant("{$class}::schema") : 'public';
 
-		$this->_relations = defined("{$class}::relations")
+		$this->___relations = defined("{$class}::relations")
 			? constant("{$class}::relations") : [];
 
 		$parent = get_parent_class($class);
@@ -37,30 +37,30 @@ class Table {
 			}
 
 			$class::$$property = Table::delimiter."{$this->path()}.\"{$property}\"";
-			$this->_values[$property] = NULL;
+			$this->___values[$property] = NULL;
 		}
 	}
 
 	public static function database($database) {
-		self::$_database = $database;
+		self::$___database = $database;
 	}
 
 	public function __set($name, $value) {
-		if (!array_key_exists($name, $this->_values)) {
+		if (!array_key_exists($name, $this->___values)) {
 			throw new UndefinedPropertyException('Undefined property: '.get_class($this).'::$'.$name);
 		}
-		$this->_write[$name] = $value;
+		$this->___write[$name] = $value;
 	}
 
 	public function __get($name) {
-		if (!array_key_exists($name, $this->_values)) {
+		if (!array_key_exists($name, $this->___values)) {
 			throw new UndefinedPropertyException('Undefined property: '.get_class($this).'::$'.$name);
 		}
-		return $this->_values[$name];
+		return $this->___values[$name];
 	}
 
 	public function path() {
-		return "\"{$this->_schema}\".\"{$this->_table}\"";
+		return "\"{$this->___schema}\".\"{$this->___table}\"";
 	}
 }
 
