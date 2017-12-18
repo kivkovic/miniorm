@@ -115,6 +115,10 @@ class Table {
 
 		return $columns;
 	}
+
+	public function __toString() {
+		return json_encode($this->___values);
+	}
 }
 
 class UndefinedPropertyException extends \Exception {
