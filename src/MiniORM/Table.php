@@ -41,22 +41,24 @@ class Table {
 	}
 
 	public function __set($name, $value) {
-    	if (!array_key_exists($name, $this->_values)) {
-    		trigger_error('Undefined property: '.get_class($this).'::$'.$name, E_USER_NOTICE);
-    		return;
-    	}
+		if (!array_key_exists($name, $this->_values)) {
+			throw new UndefinedPropertyException('Undefined property: '.get_class($this).'::$'.$name);
+		}
 		$this->_write[$name] = $value;
-    }
+	}
 
-    public function __get($name) {
-    	if (!array_key_exists($name, $this->_values)) {
-    		trigger_error('Undefined property: '.get_class($this).'::$'.$name, E_USER_NOTICE);
-    		return NULL;
-    	}
-    	return $this->_values[$name];
-    }
+	public function __get($name) {
+		if (!array_key_exists($name, $this->_values)) {
+			throw new UndefinedPropertyException('Undefined property: '.get_class($this).'::$'.$name);
+		}
+		return $this->_values[$name];
+	}
 
 	public function path() {
 		return "\"{$this->_schema}\".\"{$this->_table}\"";
 	}
+}
+
+class UndefinedPropertyException extends \Exception {
+
 }
