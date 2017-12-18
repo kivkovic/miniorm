@@ -13,16 +13,6 @@ class Table {
 
 	public function __construct($schema = NULL, $table = NULL) {
 		self::initialize_columns();
-
-		$class = get_class($this);
-		$parent = get_parent_class($class);
-		$reflection = new \ReflectionClass($class);
-		$static_properties = $reflection->getStaticProperties();
-
-		foreach ($static_properties as $property => $value) {
-			if (stripos($property, '___') === 0) continue;
-			$this->___values[$property] = NULL;
-		}
 	}
 
 	public static function set_database($database) {
@@ -55,8 +45,9 @@ class Table {
 			return $this;
 		}
 
-		foreach (self::$___columns as $key => $column) {
-			if(!empty($column['primary_key']) && !empty($this->___values[$key])) {
+		$class = get_called_class();
+		foreach ($class::columns() as $key => $column) {
+			if(!empty($column->primary_key) && !empty($this->___values[$key])) {
 				$result = Query::update(self::path(), $this->___write, [$key => $this->___values[$key]], self::get_database());
 				break;
 			}
@@ -66,7 +57,6 @@ class Table {
 			$result = Query::insert(self::path(), $this->___write, self::get_database());
 		}
 
-		$class = get_called_class();
 		$object = new $class;
 		foreach ($result as $key => $value) {
 			$object->___values[$key] = $value;
@@ -76,10 +66,11 @@ class Table {
 	}
 
 	public function __set($name, $value) {
-		if (!array_key_exists($name, $this->___values)) {
+		$columns = $this::columns();
+		if (!isset($columns[$name])) {
 			throw new UndefinedPropertyException('Undefined property: '.get_class($this).'::$'.$name);
 		}
-		if (!empty(self::$___columns[$name]['read_only'])) {
+		if (!empty($columns[$name]->read_only)) {
 			throw new ReadOnlyPropertyException('Read-only property: '.get_class($this).'::$'.$name);
 		}
 		$this->___write[$name] = $value;
@@ -87,7 +78,8 @@ class Table {
 	}
 
 	public function __get($name) {
-		if (!array_key_exists($name, $this->___values)) {
+		$columns = $this::columns();
+		if (!isset($columns[$name])) {
 			throw new UndefinedPropertyException('Undefined property: '.get_class($this).'::$'.$name);
 		}
 		return $this->___values[$name];
@@ -103,15 +95,25 @@ class Table {
 		});
 
 		foreach ($models as $model) {
-			$reflection = new \ReflectionClass($model);
-			$static_properties = $reflection->getStaticProperties();
-
-			foreach ($static_properties as $property => $value) {
-				if (stripos($property, '___') === 0 || $value instanceof Column) continue;
+			foreach ($model::columns() as $property => $value) {
+				if ($value instanceof Column) continue;
 				$value['name'] =  $model::path() . '."' . $property . '"';
 				$model::$$property = new Column($value);
 			}
 		}
+	}
+
+	public static function columns() {
+		$reflection = new \ReflectionClass(get_called_class());
+		$static_properties = $reflection->getStaticProperties();
+		$columns = [];
+
+		foreach ($static_properties as $property => $value) {
+			if (stripos($property, '___') === 0) continue;
+			$columns[$property] = $value;
+		}
+
+		return $columns;
 	}
 }
 
