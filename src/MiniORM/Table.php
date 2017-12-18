@@ -5,11 +5,6 @@ namespace MiniORM;
 class Table {
 
 	public static $___database;
-	public static $___columns = [];
-	public static $___initialized = FALSE;
-	public static $___table;
-	public static $___schema;
-	public static $___relations = [];
 
 	public $___values = [];
 	public $___write = [];
@@ -99,26 +94,21 @@ class Table {
 	}
 
 	public static function path() {
-		return '"' . static::$___schema . '"."' . static::$___table . '"';
+		return '"' . (defined(get_called_class().'::schema') ? constant(get_called_class().'::schema') : 'public') . '"."' . constant(get_called_class().'::table') . '"';
 	}
 
 	public static function initialize_columns() {
 		$models = array_filter(get_declared_classes(), function ($class) {
-			return defined("{$class}::table") && is_subclass_of($class, self::class) && !$class::$___initialized;
+			return defined("{$class}::table") && is_subclass_of($class, self::class);
 		});
 
 		foreach ($models as $model) {
-			$model::$___schema = defined("{$model}::schema") ? constant("{$model}::schema") : 'public';
-			$model::$___table = constant("{$model}::table");
-			$model::$___relations = defined("{$model}::relations") ? constant("{$model}::relations") : [];
-			$model::$___initialized = TRUE;
-
 			$reflection = new \ReflectionClass($model);
 			$static_properties = $reflection->getStaticProperties();
 
 			foreach ($static_properties as $property => $value) {
-				if (stripos($property, '___') === 0) continue;
-				$value['name'] = '"' . $model::$___schema . '"."' . $model::$___table . '"."' . $property . '"';
+				if (stripos($property, '___') === 0 || $value instanceof Column) continue;
+				$value['name'] =  $model::path() . '."' . $property . '"';
 				$model::$$property = new Column($value);
 			}
 		}
