@@ -59,22 +59,4 @@ class Table {
 	public function path() {
 		return "\"{$this->_schema}\".\"{$this->_table}\"";
 	}
-
-	protected function one_to_many(Table $table) {
-		return ['array', ['LEFT JOIN', "{$table->path()} ON
-			{$table->path()}.\"{$this->_table}_id\" = {$this->path()}.\"id\""]];
-	}
-
-	protected function many_to_one(Table $table) {
-		return [get_class($table), ['LEFT JOIN', "{$table->path()} ON
-			{$this->path()}.\"{$table->_table}_id\" = {$table->path()}.\"id\""]];
-	}
-
-	protected function many_to_many(Table $table) {
-		$middle_table = (new $this->_relations[get_class($table)]->target)->path();
-		return ['array', ['LEFT JOIN', "{$middle_table} ON
-			{$middle_table}.\"{$this->_table}_id\" = {$this->path()}.\"id\"
-			LEFT JOIN {$table->path()} ON
-			{$middle_table}.\"{$table->_table}_id\" = {$table->path()}.\"id\""]];
-	}
 }
