@@ -81,6 +81,13 @@ class Query {
 		return $new;
 	}
 
+	public static function model($class) {
+		$query = Query::from($class);
+		$query->_select = [['method' => 'SELECT', 'arguments' => [$query->_from[0]['arguments'][0] . '.*']]];
+		$query->_database = $class::get_database();
+		return $query;
+	}
+
 	public static function literal() {
 		$value = Table::delimiter;
 		foreach (func_get_args() as $argument) {
