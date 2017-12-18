@@ -48,10 +48,24 @@ class Table {
 		self::$___database = $database;
 	}
 
-	public static function get_database() {
+	protected static function get_database() {
 		return (empty(self::$___database) && get_parent_class() !== FALSE)
-			? parent::$__database
+			? parent::get_database()
 			: self::$___database;
+	}
+
+	public static function load($query) {
+		$results = [];
+		$class = get_called_class();
+		foreach ($query->get(self::get_database()) as $row) {
+			$object = new $class;
+			foreach ($row as $key => $value) {
+				$object->___values[$key] = $value;
+			}
+			$results []= $object;
+		}
+
+		return $results;
 	}
 
 	public function __set($name, $value) {
