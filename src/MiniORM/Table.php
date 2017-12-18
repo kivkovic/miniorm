@@ -5,10 +5,10 @@ namespace MiniORM;
 class Table {
 
 	public static $___database;
+	public static $___columns = [];
+
 	public $___table;
 	public $___schema;
-
-	public $___columns = [];
 	public $___relations = [];
 	public $___values = [];
 	public $___write = [];
@@ -39,7 +39,11 @@ class Table {
 			}
 
 			$class::$$property = Table::delimiter."{$this->path()}.\"{$property}\"";
-			$this->___columns[$property] = $value;
+
+			if (!isset($class::$___columns[$property])) {
+				$class::$___columns[$property] = $value;
+			}
+
 			$this->___values[$property] = NULL;
 		}
 	}
@@ -72,7 +76,7 @@ class Table {
 		if (!array_key_exists($name, $this->___values)) {
 			throw new UndefinedPropertyException('Undefined property: '.get_class($this).'::$'.$name);
 		}
-		if (!empty($this->___columns[$name]['read_only'])) {
+		if (!empty(self::$___columns[$name]['read_only'])) {
 			throw new ReadOnlyPropertyException('Read-only property: '.get_class($this).'::$'.$name);
 		}
 		$this->___write[$name] = $value;
