@@ -87,7 +87,8 @@ class Query {
 	}
 
 	public function run($database) {
-		$this->compile();
+		list($query, $parameters) = $this->compile();
+		// TODO implement
 	}
 
 	public function compile() {
