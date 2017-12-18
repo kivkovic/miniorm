@@ -27,10 +27,6 @@ class Query {
 			}
 			$new->_global []= ['method' => $method, 'arguments' => $arguments];
 			return $new;
-
-		} else if ($method === 'from') {
-			$new->_from []= ['method' => 'from', 'arguments' => [Table::delimiter . (new $arguments[0])->path()]];
-			return $new;
 		}
 
 		return $new->__call($method, $arguments);
@@ -50,6 +46,9 @@ class Query {
 
 		if (in_array($method, ['select', 'count'])) {
 			$new->_select []= $value;
+
+		} else if ($method === 'from') {
+			// TODO implement
 
 		} else if (in_array($method, ['join','left_join','right_join','left_outer_join','right_outer_join','inner_join'])) {
 			$value['arguments'] = $escape($value['arguments'], 2);
