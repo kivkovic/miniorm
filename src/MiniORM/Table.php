@@ -43,8 +43,14 @@ class Table {
 		}
 	}
 
-	public static function database($database) {
+	public static function set_database($database) {
 		self::$___database = $database;
+	}
+
+	public static function get_database() {
+		return (empty(self::$___database) && get_parent_class() !== FALSE)
+			? parent::$__database
+			: self::$___database;
 	}
 
 	public function __set($name, $value) {
