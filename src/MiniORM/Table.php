@@ -25,18 +25,18 @@ class Table {
 		$this->_relations = defined("{$class}::relations")
 			? constant("{$class}::relations") : [];
 
-	    $parent = get_parent_class($class);
+		$parent = get_parent_class($class);
 		$reflection = new \ReflectionClass($class);
 		$static_properties = $reflection->getStaticProperties();
 
 		foreach ($static_properties as $property => $value) {
 
-	        if (!isset($class::$$property) && isset($parent::$$property)) { // inherited table attributes must always be *declared* in child classes
-	        	$class::$$property = $parent::$$property;
-	        }
+			if (!isset($class::$$property) && isset($parent::$$property)) { // inherited table attributes must always be *declared* in child classes
+				$class::$$property = $parent::$$property;
+			}
 
-		    $class::$$property = Table::delimiter."{$this->path()}.\"{$property}\"";
-		    $this->_values[$property] = NULL;
+			$class::$$property = Table::delimiter."{$this->path()}.\"{$property}\"";
+			$this->_values[$property] = NULL;
 		}
 	}
 
