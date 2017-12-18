@@ -41,6 +41,8 @@ class Table {
 							$value = (integer) $value;
 						} else if (preg_match('/(float|double|decimal)/i', $columns[$key]->type)) {
 							$value = (float) $value;
+						} else if(preg_match('/bool/', $columns[$key]->type)) {
+							$value = $value == 't' ? TRUE : FALSE;
 						}
 					}
 				}
