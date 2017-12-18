@@ -14,6 +14,7 @@ class Query {
 	public $_order_by = [];
 	public $_limit    = NULL;
 	public $_offset   = NULL;
+	public static $___database;
 
 	public static function __callStatic($method, $arguments) {
 		$new = new self;
@@ -194,5 +195,9 @@ class Query {
 		if (isset($this->_offset)) $query []= 'OFFSET ' . $this->_offset;
 
 		return [implode(' ', $query), $parameters];
+	}
+
+	public static function database($database) {
+		self::$___database = $database;
 	}
 }
