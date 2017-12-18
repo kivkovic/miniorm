@@ -8,6 +8,7 @@ class Table {
 	public $___table;
 	public $___schema;
 
+	public $___columns = [];
 	public $___relations = [];
 	public $___values = [];
 	public $___write = [];
@@ -37,6 +38,7 @@ class Table {
 			}
 
 			$class::$$property = Table::delimiter."{$this->path()}.\"{$property}\"";
+			$this->___columns[$property] = $value;
 			$this->___values[$property] = NULL;
 		}
 	}
