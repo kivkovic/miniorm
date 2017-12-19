@@ -27,25 +27,13 @@ class Table {
 
 	public static function load($query) {
 		$results = [];
-		$class = get_called_class();
 		$external_types = [];
+		$class = get_called_class();
+		$rows = $query->get(self::get_database(), $class::columns());
 
-		foreach ($query->get(self::get_database()) as $row) {
+		foreach ($rows as $row) {
 			$object = new $class;
-			$columns = $class::columns();
-
 			foreach ($row as $key => $value) {
-				if ($value !== NULL) {
-					if (isset($columns[$key])) {
-						if (preg_match('/(int|serial)/i', $columns[$key]->type)) {
-							$value = (integer) $value;
-						} else if (preg_match('/(float|double|decimal)/i', $columns[$key]->type)) {
-							$value = (float) $value;
-						} else if(preg_match('/bool/', $columns[$key]->type)) {
-							$value = $value == 't' ? TRUE : FALSE;
-						}
-					}
-				}
 				$object->___values[$key] = $value;
 			}
 			$results []= $object;

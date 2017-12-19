@@ -20,8 +20,23 @@ class PSQL {
 
 		$result = pg_query_params($this->connection, $query, $parameters);
 		$rows = [];
+		$identified = FALSE;
 
 		while ($row = pg_fetch_assoc($result)) {
+			if (empty($identified) && !empty($columns)) {
+				$identified = $this->identify_columns($result, $row, $columns);
+			}
+			if (!empty($identified)) {
+				foreach ($row as $key => &$value) {
+					if (preg_match('/(int|serial)/i', $identified[$key]->type)) {
+						$value = (integer) $value;
+					} else if (preg_match('/(float|double|decimal)/i', $identified[$key]->type)) {
+						$value = (float) $value;
+					} else if(preg_match('/bool/', $identified[$key]->type)) {
+						$value = $value == 't' ? TRUE : FALSE;
+					}
+				}
+			}
 			$rows []= $row;
 		}
 
@@ -43,6 +58,16 @@ class PSQL {
 
 	protected function disconnect() {
 		pg_close($this->connection);
+	}
+
+	protected function identify_columns($result, $row, $columns = []) {
+		$i = 0;
+		foreach ($row as $key => $value) {
+			if (!isset($columns[$key])) {
+				$columns[$key] = (object)['type' => pg_field_type($result, $i++)];
+			}
+		}
+		return $columns;
 	}
 }
 
