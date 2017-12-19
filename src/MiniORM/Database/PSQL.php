@@ -11,7 +11,7 @@ class PSQL {
 		$this->database = $database;
 	}
 
-	public function get_param_query($query, $parameters, $force_return = FALSE) {
+	public function get_param_query($query, $parameters, $columns = NULL, $force_return = FALSE) {
 		$this->connect();
 
 		if ($force_return) {

@@ -80,7 +80,7 @@ class Query {
 		return $new;
 	}
 
-	public static function insert($table, $values, $database) {
+	public static function insert($table, $values, $database, $columns = NULL) {
 		Table::initialize_columns();
 
 		$db_driver = self::get_db_driver($database);
@@ -96,10 +96,10 @@ class Query {
 		}, array_values($values)));
 
 		$query = "INSERT INTO {$table} ($columns) VALUES ($placeholders)";
-		return $db_driver->get_param_query($query, array_values($values), TRUE);
+		return $db_driver->get_param_query($query, array_values($values), $columns, TRUE);
 	}
 
-	public static function update($table, $values, $id, $database) {
+	public static function update($table, $values, $id, $database, $columns = NULL) {
 		Table::initialize_columns();
 
 		$db_driver = self::get_db_driver($database);
@@ -110,7 +110,7 @@ class Query {
 		}
 
 		$query .= " WHERE ".array_keys($id)[0]." = ".array_values($id)[0];
-		return $db_driver->get_param_query($query, array_values($values), TRUE);
+		return $db_driver->get_param_query($query, array_values($values), $columns, TRUE);
 	}
 
 	public static function literal() {
@@ -123,10 +123,10 @@ class Query {
 		return $value;
 	}
 
-	public function get(array $database = NULL) {
+	public function get(array $database = NULL, array $columns = NULL) {
 		list($query, $parameters) = $this->compile();
 		$db_driver = $this->get_db_driver($database);
-		return $db_driver->get_param_query($query, $parameters);
+		return $db_driver->get_param_query($query, $parameters, $columns);
 	}
 
 	public function compile() {

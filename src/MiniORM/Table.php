@@ -63,13 +63,13 @@ class Table {
 		$class = get_called_class();
 		foreach ($class::columns() as $key => $column) {
 			if(!empty($column->primary_key) && !empty($this->___values[$key])) {
-				$result = Query::update(self::path(), $this->___write, [$key => $this->___values[$key]], self::get_database());
+				$result = Query::update($class::path(), $this->___write, [$key => $this->___values[$key]], $class::get_database(), $class::columns());
 				break;
 			}
 		}
 
 		if ($result === NULL) {
-			$result = Query::insert(self::path(), $this->___write, self::get_database());
+			$result = Query::insert($class::path(), $this->___write, $class::get_database(), $class::columns());
 		}
 
 		$object = new $class;
