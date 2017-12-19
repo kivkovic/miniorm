@@ -63,7 +63,7 @@ class PSQL {
 	protected function identify_columns($result, $row, $columns = []) {
 		$i = 0;
 		foreach ($row as $key => $value) {
-			if (!isset($columns[$key])) {
+			if (!isset($columns[$key]) || !isset($columns[$key]->type)) {
 				$columns[$key] = (object)['type' => pg_field_type($result, $i++)];
 			}
 		}
