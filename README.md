@@ -30,7 +30,7 @@ $list = MiniORM\Query
 var_dump($list);
 // array(2) { // query
 //   [0]=>
-//   string(519) "SELECT * , COUNT ( * ) FROM "custom"."table_a" JOIN ( B ) ON ( "public"."table_b"."id" = "custom"."table_a"."id" ) WHERE TRUE AND ( CAST ( "custom"."table_a"."columnA" AS text ) != "public"."table_b"."columnB" ) AND ( "custom"."table_a"."columnA" != "public"."table_b"."columnB" ) OR ( "custom"."table_a"."columnA" != $1 ) AND ( EXISTS ( SELECT FUNC1 ( "custom"."table_a"."columnA" , "public"."table_b"."columnB" ) AS xy WHERE TRUE AND ( xy != $1 ) LIMIT 100 ) ) ORDER BY "custom"."table_a"."id" ASC LIMIT 100 OFFSET 10"
+//   string(519) "SELECT * , COUNT ( * ) FROM "custom"."table_a" JOIN ( "public"."table_b" ) ON ( "public"."table_b"."id" = "custom"."table_a"."id" ) WHERE TRUE AND ( CAST ( "custom"."table_a"."columnA" AS text ) != "public"."table_b"."columnB" ) AND ( "custom"."table_a"."columnA" != "public"."table_b"."columnB" ) OR ( "custom"."table_a"."columnA" != $1 ) AND ( EXISTS ( SELECT FUNC1 ( "custom"."table_a"."columnA" , "public"."table_b"."columnB" ) AS xy WHERE TRUE AND ( xy != $1 ) LIMIT 100 ) ) ORDER BY "custom"."table_a"."id" ASC LIMIT 100 OFFSET 10"
 //   [1]=>
 //   array(2) { // parameters
 //     [0]=>
