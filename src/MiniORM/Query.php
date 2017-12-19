@@ -51,6 +51,8 @@ class Query {
             $new->_from []= $value;
 
         } else if (in_array($method, ['join','left_join','right_join','left_outer_join','right_outer_join','inner_join'])) {
+            $class = $value['arguments'][0];
+            $value['arguments'][0] = Table::delimiter . $class::path();
             $value['arguments'] = $escape($value['arguments'], 2);
             $new->_join []= $value;
 
