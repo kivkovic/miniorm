@@ -130,3 +130,23 @@ try {
     echo "Caught MiniORM\UndefinedPropertyException\n";
 }
 ```
+
+## Installation
+
+Requires [composer](https://github.com/composer/composer)
+
+Example composer.json:
+
+```
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/kivkovic/miniorm"
+        }
+    ],
+    "require": {
+        "kivkovic/php-json": "dev-master"
+    }
+}
+```
