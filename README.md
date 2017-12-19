@@ -104,12 +104,15 @@ $list = A::load( // integrates with Query
 
 $a = $list[0];
 
-echo $a; // outputs: {"id":9,"columnA":100,"x_id":null}
+echo $a;
+// outputs: {"id":9,"columnA":100,"x_id":3,"boolean":true}
+// correctly parses sql values without specifying type
 
 $a->columnA = 1;
 $a = $a->save(); // performs update, returns updated Table object
 
-echo $a; // outputs: {"id":9,"columnA":1,"x_id":null}
+echo $a;
+// outputs: {"id":9,"columnA":1,"x_id":3,"boolean":true}
 
 $b = new A();
 $b->columnA = 55;
@@ -127,4 +130,3 @@ try {
 	echo "Caught MiniORM\UndefinedPropertyException\n";
 }
 ```
-
