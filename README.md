@@ -106,7 +106,7 @@ $a = $list[0];
 
 echo $a;
 // outputs: {"id":9,"columnA":100,"x_id":3,"boolean":true}
-// correctly parses sql values without specifying type
+// parses sql values (including those of unspecified type) to correct PHP types
 
 $a->columnA = 1;
 $a = $a->save(); // performs update, returns updated Table object
