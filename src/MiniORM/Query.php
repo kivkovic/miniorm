@@ -85,7 +85,7 @@ class Query {
 
         $db_driver = self::get_db_driver($database);
 
-        $columns = implode(',', array_map(function ($col) {
+        $columns_string = implode(',', array_map(function ($col) {
             return '"'.$col.'"';
         }, array_keys($values)));
 
@@ -95,7 +95,7 @@ class Query {
             return '$'.$counter;
         }, array_values($values)));
 
-        $query = "INSERT INTO {$table} ($columns) VALUES ($placeholders)";
+        $query = "INSERT INTO {$table} ($columns_string) VALUES ($placeholders)";
         return $db_driver->get_param_query($query, array_values($values), $columns, TRUE);
     }
 
